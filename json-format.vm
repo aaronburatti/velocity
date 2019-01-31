@@ -1,0 +1,129 @@
+<div style="display: none;">
+  <!--startfrontpagebanners-->
+#set($jsonFolder =$_.locateFolder("/banners").children)               ##start with the containing folder and get all children
+#set($counter = 0)
+
+#foreach($json in $jsonFolder)                                      ##loop through the folder's children
+    #set($sectionNames = [])                        ##blank array that will hold distinct type of system-data-structure's immediate children
+
+    #if($json.assetType == 'page')                  ##filter for pages
+
+
+        #set($nodeNames = $json.structuredData) ##grab all of system-data-structure's immediate children names
+
+        #foreach($node in $nodeNames) ##loop through the child names
+            #if(!$sectionNames.contains($node.identifier))  ##filter for unique names
+                #if($sectionNames.add($node.identifier))#end ##add unique node names to the array
+                #end
+            #end ##end loop of child names
+
+         #set($sectionNamesCount = $sectionNames.size())
+         #if($sectionNames.size() > 1) { "banners": { #else { #end ##if there are multiple unique names, then add a containing object to the json
+                                                                   ##if not, let the child node name serve as the containing object
+
+         #foreach($section in $sectionNames)                       ## loop through the names grabbed above
+
+
+            #set($dataDefs = $json.getStructuredDataNodes(${section})) ##get all children  of each DD section
+
+
+        "${section}" : [               ##print out each unique section name as a container for the JSON objects
+            #if($dataDefs.size() > 1)   ##if there is more than one banner(i.e. a repeated node name
+                #foreach($data in $dataDefs) ##loop through the children of each DD node
+                 #set($children = $data.children)  ##put the child nodes in their own variable
+                     #foreach($child in $children)  ##loop through each child node
+                         #if($children.size() == $foreach.count) ##if this is the last iteration of the loop do NOT print a comma after each object but print trailing }
+                             #if($child.text == true)   ##and if it is a text node
+                                "${child.identifier}" : "${child.textValue}"}       ##print the XML identifier and the text node value
+                             #else
+                                "${child.identifier}" : "https://indianapublicmedia.org/${child.asset.path}"}  ##otherwise it is an image
+                             #end                                                                              ##so get its identifier and path
+                         #elseif($foreach.count == 1) ##on first loop iteration print the leading }
+                              #if($child.text == true) ##and it is a text node
+                                #set($url = $child.textValue) ##save the url in a variable
+                                {"${child.identifier}" : <!--#protect"${url}"#protect-->, ##flag the system to ignore the url's abnormal characters
+                             #else
+                                {"${child.identifier}" : "https://indianapublicmedia.org/${data.asset.path}", ##otherwise its an image and set the path
+                             #end
+                         #else      ##if this is not the last loop iteration print a comma after each object
+                            #if($child.text == true)
+                                "${child.identifier}" : "${child.textValue}",
+                             #else
+                                "${child.identifier}" : "https://indianapublicmedia.org/${child.asset.path}",
+                             #end
+                         #end
+
+                          #if($foreach.count > 4)
+                         ,
+                         #end ##if there is more than one unique JSON container print a , between them
+                     #end ##end child node for loop
+                     #set($counter = $counter + 1)
+
+                        #if($dataDefs.size() > $foreach.count)
+                        ,
+                        #end
+
+                        #if($dataDefs.size() == $foreach.count && $nodeNames.size() != $counter)
+                         ],
+
+                        #elseif($nodeNames.size() == $counter)
+                        ]
+                        #end
+                #end ##foreach data node in the DD  $nodeNames.size() $dataDefs.size()
+                        #if($sectionNames.size() < $foreach.count)
+                        ,
+                        #elseif($sectionNames.size() == $foreach.count)
+                        }}
+                        #end
+            #else ##if there is only one data node
+
+
+
+
+
+
+                #set($dataDef = $json.getStructuredDataNode(${section}).children) ##get the node's children
+                   #foreach($data in $dataDef) ##foreach child
+                     #if($foreach.count == 4) ##conditionally check the loop iteration to print commas or not
+                        #if($data.text == true)
+                            "${data.identifier}" : "${data.textValue}"}
+                         #else
+                            "${data.identifier}" : "https://indianapublicmedia.org/${data.asset.path}"}
+                         #end
+                     #elseif($foreach.count == 1)
+
+                        #if($data.text == true)
+                            #set($url = $data.textValue)
+                            {"${data.identifier}" : <!--#protect"${url}"#protect-->,
+                         #else
+                            {"${data.identifier}" : "https://indianapublicmedia.org/${data.asset.path}",
+                         #end
+                     #else
+
+                        #if($data.text == true)
+                            "${data.identifier}" : "${data.textValue}",
+                         #else
+                            "${data.identifier}" : "https://indianapublicmedia.org/${data.asset.path}",
+                         #end
+
+                    #end##if loop count
+
+                   #end## foreach child
+                    #set($counter = $counter + 1)
+                      #if($nodeNames.size() > $counter)
+                    ],
+                    #elseif($nodeNames.size() == $counter)
+                    ]}}
+                    #elseif($nodeNames.size() < $counter)
+                    ]
+                    #end
+
+            #end ##dealing with data node(s)
+
+
+           #end ##iteration through section names
+
+   #end##if it is a page
+#end ## foreach json
+    <!--endfrontpagebanners-->
+</div>
