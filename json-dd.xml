@@ -1,0 +1,14 @@
+<system-data-structure>
+	<group identifier="tv" label="TV" multiple="true">
+		<text identifier="url" label="URL"/>
+		<asset identifier="img" label="Image" type="file"/>
+		<text identifier="startingDate" label="Start Date" type="datetime"/>
+		<text identifier="endingDate" label="End Date" type="datetime"/>
+	</group>
+	<group identifier="radio" label="Radio" multiple="true">
+		<text identifier="url" label="URL"/>
+		<asset identifier="img" label="Image" type="file"/>
+		<text identifier="startingDate" label="Start Date" type="datetime"/>
+		<text identifier="endingDate" label="End Date" type="datetime"/>
+	</group>
+</system-data-structure>
