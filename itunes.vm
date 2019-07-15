@@ -1,0 +1,225 @@
+#import('/_ipm/_library/formats/macros')
+
+
+##Section Data
+##set($section           = $currentPage.parentFolder.label)
+#set($section           = $currentPage.label.split("-")[0])
+#set($sectionData       = $_.locateBlock("/${section}/${section}-sectiondata"))
+#set($niceName          = $sectionData.metadata.title)
+#set($summary           = $_EscapeTool.xml($sectionData.metadata.summary))
+#set($podCat            = $_EscapeTool.xml($sectionData.metadata.getDynamicField("podCat").value))
+
+
+##Page Data
+#set($page              = $currentPage)
+#set($created           = $_DateTool.format('E, d MMM yyyy HH:mm:ss Z', $page.createdOn))
+#set($startDate         = $_DateTool.format('E, d MMM yyyy HH:mm:ss Z', $page.metadata.startDate))
+#set($lastPub           = $_DateTool.format('E, d MMM yyyy HH:mm:ss Z', $page.lastPublishedOn))
+#set($type              = $page.getStructuredDataNode("type").textValue)
+
+#set($currentTime = $_DateTool.getSystemTime())
+#set($currentYear = $_DateTool.format("YYYY", $currentTime))
+
+
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" 
+                   xmlns:atom="http://www.w3.org/2005/Atom" 
+                   xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+                   xmlns:wfw="http://wellformedweb.org/CommentAPI/" 
+                   xmlns:dc="http://purl.org/dc/elements/1.1/" 
+                   xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" 
+                   xmlns:slash="http://purl.org/rss/1.0/modules/slash/" 
+                   xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0">
+    <channel>
+        <title>#if($section == 'ethergame')Ethercast#else$niceName#end</title>
+        <link>https://indianapublicmedia.org/$section</link>
+        <atom:link href="https://indianapublicmedia.org/feeds/${section}-audio.xml" rel="self" type="application/rss+xml"/>
+        <image>
+            <url>https://indianapublicmedia.org/_ipm/_files/images/${section}_podcast.jpg</url>
+            <title>$niceName</title>
+            <link>https://indianapublicmedia.org/$section</link>
+        </image>
+        <description>
+            $summary
+        </description>
+        <language>en-us</language>
+        <copyright>$currentYear</copyright>
+        <lastBuildDate>
+            #if($lastPub.isEmpty() == false)
+                $lastPub
+            #else
+                $created
+            #end
+        </lastBuildDate>
+        <managingEditor>iupublicmedia@gmail.com (Indiana Public Media (indianapublicmedia.org))</managingEditor>
+        
+        #if($type =='Audio')
+        
+            <itunes:author>Indiana Public Media</itunes:author>
+            <itunes:summary>
+                #if($section == 'ethergame')
+                    Ethercast is the companion podcast to Ether Game, a weekly music trivia show produced by WFIU Public Radio in Bloomington, Indiana. On each episode of Ethercast, host Christopher Burrus explores big questions in the world of classical music.
+                #else
+                    $summary
+                #end
+            </itunes:summary>
+            <itunes:subtitle>
+                #if($section == 'ethergame')
+                    Ethercast is the companion podcast to Ether Game, a weekly music trivia show produced by WFIU Public Radio in Bloomington, Indiana. On each episode of Ethercast, host Christopher Burrus explores big questions in the world of classical music.
+                #else
+                    $summary
+                #end
+            </itunes:subtitle>
+            <itunes:owner>
+                <itunes:name>Indiana Public Media</itunes:name>
+                <itunes:email>iupublicmedia@gmail.com (Indiana Public Media)</itunes:email>
+            </itunes:owner>
+            <itunes:explicit>No</itunes:explicit>
+            <itunes:keywords>
+                
+            </itunes:keywords>
+            <itunes:image href="https://indianapublicmedia.org/_ipm/_files/images/${section}_podcast.jpg"/>
+            #if($section == 'poetsweave')
+                <itunes:category text="Arts">
+                    <itunes:category text="Literature"></itunes:category>
+                </itunes:category>
+            #elseif($section == 'focusonflowers')
+                <itunes:category text="Games &amp; Hobbies">
+                	<itunes:category text="Hobbies">
+            	</itunes:category>
+            	</itunes:category>
+            	<itunes:category text="Arts">
+            		<itunes:category text="Design"></itunes:category>
+            	</itunes:category>
+            	<itunes:category text="Sports &amp; Recreation">
+            		<itunes:category text="Outdoor"></itunes:category>
+            	</itunes:category>
+            #elseif($section == 'noonedition')
+                <itunes:category text="News and Politics"/>
+            #elseif($section == 'eartheats')
+                <itunes:category text="Arts">
+            		<itunes:category text="Food"></itunes:category>
+            	</itunes:category>
+            	<itunes:category text="Health">
+            		<itunes:category text="Fitness &amp; Nutrition"></itunes:category>
+            	</itunes:category>
+            	<itunes:category text="News &amp; Politics">
+            	</itunes:category> 
+             #elseif($section == 'ethergame')
+                <itunes:category text="Music"></itunes:category>
+            	<itunes:category text="Games and Hobbies">
+            		<itunes:category text="Other Games"></itunes:category>
+            	</itunes:category>
+            	<itunes:category text="Arts">
+            	    <itunes:category text="Performing Arts"></itunes:category>
+            	</itunes:category> 
+            #end
+        #end
+        
+        <sy:updatePeriod>hourly</sy:updatePeriod>
+	    <sy:updateFrequency>6</sy:updateFrequency>
+        <pubDate>
+            #if($lastPub.isEmpty() == false)
+                $lastPub
+            #else
+                $created
+            #end
+        </pubDate>
+        
+        
+        #pageContentTypeQuery($section 2000)
+          
+        #foreach($result in $results)
+        
+        #set($created = '')
+        #set($created = $result.createdOn)
+        
+        #set($path = "")
+        #set($path = $result.path)
+        #set($path = $path.replace(" ", "%20"))
+        
+        #set($mp3 = '')
+        #set($mp3 = $result.getStructuredDataNode("media").getChild("pod"))
+        #set($tags = $result.tags)
+        
+         #set($enclosure = '')
+         
+         #thmOrFeatImg()
+         
+            #if($result.getStructuredDataNode("media").getChild("pod").getTextValue().isEmpty() == false)
+                #set($enclosure = $result.getStructuredDataNode("media").getChild("pod").getTextValue())
+            #else
+                #set($enclosure = $p)
+            #end
+            
+            
+            #if($type != 'Audio' && $result.label != "blank-${section}-post" && $result.label != "about" && $result.label != "index" && $result.label != 'archive')
+                  <item>
+                    <title>$_EscapeTool.xml($result.label)</title>
+                    <link>
+                       https://indianapublicmedia.org/${path}.php
+                    </link>
+                    <pubDate>$_DateTool.format('E, d MMM yyyy HH:mm:ss Z', $created)</pubDate>
+                    <description>
+                        $_EscapeTool.xml($result.metadata.teaser)
+                    </description>
+                    ##categories
+                    #if($tags.isEmpty() == false)
+                        #foreach($tag in $tags)
+                            <category>$tag</category>
+                        #end
+                    #end
+                    <enclosure url="${enclosure}" length="1" type="audio/mpeg"/>
+                    <guid>
+                         https://indianapublicmedia.org/${path}.php
+                    </guid>
+                 </item>
+            
+            #elseif($mp3.textValue.isEmpty() == false && $type == 'Audio')
+            
+                 <item>
+                    <title>$_EscapeTool.xml($result.label)</title>
+                    <link>
+                      https://indianapublicmedia.org/${path}.php
+                    </link>
+                    <pubDate>$_DateTool.format('E, d MMM yyyy HH:mm:ss Z', $result.metadata.startDate)</pubDate>
+                    <description>
+                        $_EscapeTool.xml($result.metadata.teaser)
+                    </description>
+                     #if($tags.isEmpty() == false)
+                        #foreach($tag in $tags)
+                            <category>$tag</category>
+                        #end
+                    #end
+                    <enclosure url="${enclosure}" length="1" type="audio/mpeg"/>
+                    <guid>
+                         https://indianapublicmedia.org/${path}.php
+                    </guid>
+                    <itunes:duration>
+                        #if($section == 'noonedition')
+                            53:00
+                        #elseif($section == 'eartheats')
+                            30:00
+                        #elseif($section == 'poetsweave')
+                            5:00
+                        #elseif($section == 'focusonflowers')
+                            2:00
+                        #end
+                    </itunes:duration>
+                    <itunes:subtitle>
+                        $_EscapeTool.xml($result.metadata.teaser)
+                    </itunes:subtitle>
+                    <itunes:summary>
+                        $_EscapeTool.xml($result.metadata.teaser)
+                    </itunes:summary>
+                    <itunes:image href="${p}"/>
+                    <itunes:explicit>no</itunes:explicit>
+                 </item>
+        
+            #end
+        
+        #end
+        
+        
+        
+    </channel>
+</rss>
